@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lưu Bình luận</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #commentsList {
+            list-style-type: none;
+            padding: 0;
+        }
+        #commentsList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lưu bình luận</h1>
+    <form id="commentForm">
+        <input type="text" id="username" placeholder="Tên của bạn" required>
+        <textarea id="message" placeholder="Tin nhắn" required></textarea>
+        <button type="submit">Gửi phản hồi</button>
+    </form>
+    <h2>Comments:</h2>
+    <ul id="commentsList"></ul>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlHUGFJiY7Qvfz0JTW1NhsqtGmq7gFrHs",
+            authDomain: "tin-nhan-f6191.firebaseapp.com",
+            projectId: "tin-nhan-f6191",
+            storageBucket: "tin-nhan-f6191.appspot.com",
+            messagingSenderId: "422922747711",
+            appId: "1:422922747711:web:159d540c022465d91c5d8a"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        document.getElementById('commentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const message = document.getElementById('message').value;
+
+            await db.collection('comments').add({
+                username,
+                message,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            document.getElementById('username').value = '';
+            document.getElementById('message').value = '';
+            loadComments();
+        });
+
+        async function loadComments() {
+            const snapshot = await db.collection('comments').orderBy('timestamp').get();
+            const commentsList = document.getElementById('commentsList');
+            commentsList.innerHTML = '';
+            snapshot.forEach(doc => {
+                const comment = doc.data();
+                const li = document.createElement('li');
+                li.textContent = `${comment.username}: ${comment.message}`;
+                commentsList.appendChild(li);
+            });
+        }
+
+        loadComments();
+    </script>
+</body>
+</html>
