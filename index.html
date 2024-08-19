@@ -48,18 +48,17 @@
             margin-bottom: 20px;
         }
 
-        #hand-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            color: #666;
-            cursor: pointer;
+        /* Thêm một số CSS để làm cho giao diện web đẹp hơn */
+        #image-list {
+            background-image: linear-gradient(to bottom, #fff, #f2f2f2);
         }
 
-        #hand-icon:hover {
-            color: #333;
+        #image-list img {
+            transition: all 0.2s ease-in-out;
+        }
+
+        #image-list img:hover {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -67,14 +66,12 @@
     <h1>MOD ẢNH ICON TƯỚNG THEO Ý THÍCH</h1>
     <div id="image-list">
     </div>
-    <div id="hand-icon"></div>
     <script>
         const imageList = document.getElementById("image-list");
-        const handIcon = document.getElementById("hand-icon");
 
         fetch('image-names.json')
-        .then(response => response.json())
-        .then(data => {
+       .then(response => response.json())
+       .then(data => {
                 const imageNames = data.images;
                 imageNames.forEach(name => {
                     const img = document.createElement("img");
@@ -95,7 +92,7 @@
                             zip.generateAsync({ type: "blob" }).then(content => {
                                 const link = document.createElement("a");
                                 link.href = URL.createObjectURL(content);
-                                link.download = "Ảnh Tướng Lq.zip";
+                                link.download = "Mod Ảnh Tướng.zip";
                                 link.click();
                             });
                         });
@@ -104,11 +101,6 @@
                     imageList.appendChild(img);
                 });
             });
-
-        handIcon.innerHTML = '&#128071;';
-        handIcon.addEventListener('click', function() {
-            alert('Tải Ảnh Mà Bạn Muốn Mod...');
-        });
     </script>
 </body>
 </html>
