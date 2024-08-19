@@ -45,62 +45,43 @@
     <div id="image-list">
     </div>
     <h2>Upload Ảnh Mod</h2>
-    <input type="file" id="upload-file" accept="image/*">
-    <label for="upload-file" id="upload-button">Chọn tệp</label>
     <button onclick="replaceImage()">Tải xuống ảnh mod</button>
     <script>
         const imageList = document.getElementById("image-list");
 
         fetch('image-names.json')
-           .then(response => response.json())
-           .then(data => {
+          .then(response => response.json())
+          .then(data => {
                 const imageNames = data.images;
                 imageNames.forEach(name => {
                     const img = document.createElement("img");
-                    img.src = `files/CDNImage/HeroHeadIcon/${name}.jpg`;
+                    img.src = `files/CDNImage/HeroHeadIcon/${name}`;
                     img.alt = name;
                     img.style = "width: 100px; height: 100px; margin: 5px;";
                     img.id = name;
+                    img.addEventListener('click', function() {
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = 'image/*';
+                        fileInput.addEventListener('change', function(event) {
+                            const selectedFile = event.target.files[0];
+                            const newFileName = name; 
+
+                            const zip = new JSZip();
+                            zip.file(`files/CDNImage/HeroHeadIcon/${newFileName}`, selectedFile);
+
+                            zip.generateAsync({ type: "blob" }).then(content => {
+                                const link = document.createElement("a");
+                                link.href = URL.createObjectURL(content);
+                                link.download = "Mod Ảnh Tướng Lq.zip";
+                                link.click();
+                            });
+                        });
+                        fileInput.click();
+                    });
                     imageList.appendChild(img);
                 });
             });
-
-        let selectedFile;
-        document.getElementById('upload-file').addEventListener('change', function(event) {
-            selectedFile = event.target.files[0];
-        });
-
-        function replaceImage() {
-            const zip = new JSZip();
-            fetch('image-names.json')
-               .then(response => response.json())
-               .then(data => {
-                    const imageNames = data.images;
-                    imageNames.forEach(name => {
-                        const imgElement = document.getElementById(name);
-                        const newFileName = name; 
-
-                        if (imgElement && selectedFile) {
-                            
-                            zip.file(`files/CDNImage/HeroHeadIcon/${newFileName}`, selectedFile);
-                        } else {
-                            
-                            fetch(imgElement.src)
-                               .then(res => res.blob())
-                               .then(blob => {
-                                    zip.file(`files/CDNImage/HeroHeadIcon/${newFileName}`, blob);
-                                });
-                        }
-                    });
-
-                    zip.generateAsync({ type: "blob" }).then(content => {
-                        const link = document.createElement("a");
-                        link.href = URL.createObjectURL(content);
-                        link.download = "Mod Ảnh Tướng Lq.zip";
-                        link.click();
-                    });
-                });
-        }
     </script>
 </body>
 </html>
