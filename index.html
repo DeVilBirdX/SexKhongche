@@ -1,106 +1,44 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Mod Ảnh Tướng LQ</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-        }
+  <title>RanDom Acc Lq</title>
+  <script>
+const randomBtn = document.getElementById('random-btn');
+const resultDiv = document.getElementById('result');
 
-        #image-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 800px; 
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
+const files = ['acc.txt', 'acc2.txt', 'acc3.txt', 'acc4.txt', 'acc5.txt', 'acc6.txt', 'acc7.txt']; 
 
-        #image-list img {
-            width: 100px;
-            height: 100px;
-            margin: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-        }
+randomBtn.addEventListener('click', () => {
+  const lines = [];
+  files.forEach(file => {
+    fetch(file)
+     .then(response => response.text())
+     .then(text => {
+        const fileLines = text.split('\n');
+        lines.push(...fileLines);
+      });
+  });
 
-        #image-list img:hover {
-            transform: scale(1.1);
-            transition: transform 0.2s ease-in-out;
-        }
-
-        #image-list img:active {
-            transform: scale(1.2);
-            transition: transform 0.2s ease-in-out;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        /* Thêm một số CSS để làm cho giao diện web đẹp hơn */
-        #image-list {
-            background-image: linear-gradient(to bottom, #fff, #f2f2f2);
-        }
-
-        #image-list img {
-            transition: all 0.2s ease-in-out;
-        }
-
-        #image-list img:hover {
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-        }
-    </style>
+  Promise.all(files.map(file => fetch(file).then(response => response.text())))
+   .then(() => {
+      const randomLines = [];
+      for (let i = 0; i < 5; i++) {
+        const randomIndex = Math.floor(Math.random() * lines.length);
+        randomLines.push(lines[randomIndex]);
+        lines.splice(randomIndex, 1);
+      }
+      resultDiv.innerHTML = '';
+      randomLines.forEach(line => {
+        const [taikhoan, matkhau] = line.split('|');
+        resultDiv.innerHTML += `<p>Tài khoản: ${taikhoan} | Mật khẩu: ${matkhau}</p>`;
+      });
+    });
+});
+  </script>
 </head>
 <body>
-    <h1>MOD ẢNH ICON TƯỚNG THEO Ý THÍCH</h1>
-    <div id="image-list">
-    </div>
-    <script>
-        const imageList = document.getElementById("image-list");
-
-        fetch('image-names.json')
-       .then(response => response.json())
-       .then(data => {
-                const imageNames = data.images;
-                imageNames.forEach(name => {
-                    const img = document.createElement("img");
-                    img.src = `files/CDNImage/HeroHeadIcon/${name}`;
-                    img.alt = name;
-                    img.id = name;
-                    img.addEventListener('click', function() {
-                        const fileInput = document.createElement('input');
-                        fileInput.type = 'file';
-                        fileInput.accept = 'image/*';
-                        fileInput.addEventListener('change', function(event) {
-                            const selectedFile = event.target.files[0];
-                            const newFileName = name; 
-
-                            const zip = new JSZip();
-                            zip.file(`files/CDNImage/HeroHeadIcon/${newFileName}`, selectedFile);
-
-                            zip.generateAsync({ type: "blob" }).then(content => {
-                                const link = document.createElement("a");
-                                link.href = URL.createObjectURL(content);
-                                link.download = "Mod Ảnh Tướng.zip";
-                                link.click();
-                            });
-                        });
-                        fileInput.click();
-                    });
-                    imageList.appendChild(img);
-                });
-            });
-    </script>
+  <h1>RanDom Acc LQ Free</h1>
+  <button id="random-btn">Lấy 5 Acc Liên quân</button>
+  <div id="result"></div>
 </body>
 </html>
