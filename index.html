@@ -5,18 +5,19 @@
 </head>
 <body>
   <h1>RanDom Acc LQ Free</h1>
-  <button id="random-btn">Lấy 2 Acc Liên quân</button>
+  <button id="random-btn">Lấy Acc Liên quân</button>
   <div id="result"></div>
 </body>
-  <script>
-    const randomBtn = document.getElementById('random-btn');
-    const resultDiv = document.getElementById('result');
+<script>
+  const randomBtn = document.getElementById('random-btn');
+  const resultDiv = document.getElementById('result');
 
+  randomBtn.addEventListener('click', () => {
     fetch('acc.json')
-    .then(response => response.json())
-    .then(data => {
+      .then(response => response.json())
+      .then(data => {
         const randomLines = [];
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < 1; i++) {
           const randomIndex = Math.floor(Math.random() * data.length);
           randomLines.push(data[randomIndex]);
           data.splice(randomIndex, 1);
@@ -26,6 +27,7 @@
           resultDiv.innerHTML += `<p>Tài khoản: ${line.taikhoan} | Mật khẩu: ${line.matkhau}</p>`;
         });
       })
-     .catch(error => console.error('Error:', error));
-  </script>
+      .catch(error => console.error('Error:', error));
+  });
+</script>
 </html>
