@@ -5,29 +5,59 @@
 </head>
 <body>
   <h1>RanDom Acc LQ Free</h1>
+  <div id="key-container" style="display: none;">
+    <input type="text" id="key-input" placeholder="Nhập key để sử dụng">
+    <button id="submit-key-btn">Xác nhận key</button>
+  </div>
   <button id="random-btn">Lấy Acc Liên quân</button>
   <div id="result"></div>
-</body>
-<script>
-  const randomBtn = document.getElementById('random-btn');
-  const resultDiv = document.getElementById('result');
 
-  randomBtn.addEventListener('click', () => {
-    fetch('acc.json')
-      .then(response => response.json())
-      .then(data => {
-        const randomLines = [];
-        for (let i = 0; i < 1; i++) {
-          const randomIndex = Math.floor(Math.random() * data.length);
-          randomLines.push(data[randomIndex]);
-          data.splice(randomIndex, 1);
-        }
-        resultDiv.innerHTML = '';
-        randomLines.forEach(line => {
-          resultDiv.innerHTML += `<p>Tài khoản: ${line.taikhoan} | Mật khẩu: ${line.matkhau}</p>`;
-        });
-      })
-      .catch(error => console.error('Error:', error));
-  });
-</script>
+  <script>
+    const randomBtn = document.getElementById('random-btn');
+    const resultDiv = document.getElementById('result');
+    const keyContainer = document.getElementById('key-container');
+    const keyInput = document.getElementById('key-input');
+    const submitKeyBtn = document.getElementById('submit-key-btn');
+
+    const validKey = "VuotLink"; 
+    let isKeyValid = false;
+
+    randomBtn.addEventListener('click', () => {
+      if (!isKeyValid) {
+        keyContainer.style.display = 'block';
+      } else {
+        fetchAccData();
+      }
+    });
+
+    submitKeyBtn.addEventListener('click', () => {
+      const userKey = keyInput.value;
+      if (userKey === validKey) {
+        isKeyValid = true;
+        keyContainer.style.display = 'none';
+        fetchAccData();
+      } else {
+        resultDiv.innerHTML = '<p style="color: red;">Key không hợp lệ!</p>';
+      }
+    });
+
+    function fetchAccData() {
+      fetch('acc.json')
+        .then(response => response.json())
+        .then(data => {
+          const randomLines = [];
+          for (let i = 0; i < 1; i++) {
+            const randomIndex = Math.floor(Math.random() * data.length);
+            randomLines.push(data[randomIndex]);
+            data.splice(randomIndex, 1);
+          }
+          resultDiv.innerHTML = '';
+          randomLines.forEach(line => {
+            resultDiv.innerHTML += `<p>Tài khoản: ${line.taikhoan} | Mật khẩu: ${line.matkhau}</p>`;
+          });
+        })
+        .catch(error => console.error('Error:', error));
+    }
+  </script>
+</body>
 </html>
