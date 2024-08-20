@@ -7,18 +7,35 @@
     const resultDiv = document.getElementById('result');
 
     fetch('acc.json')
-    .then(response => response.json())
-    .then(data => {
-        const randomLines = [];
-        for (let i = 0; i < 2; i++) {
-          const randomIndex = Math.floor(Math.random() * data.length);
-          randomLines.push(data[randomIndex]);
-          data.splice(randomIndex, 1);
+     .then(response => response.body.getReader())
+     .then(reader => {
+        const chunkSize = 1024 * 1024; 
+        const chunks = [];
+
+        function readChunk() {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              const jsonData = JSON.parse(chunks.join(''));
+              const randomLines = [];
+              for (let i = 0; i < 2; i++) {
+                const randomIndex = Math.floor(Math.random() * jsonData.length);
+                randomLines.push(jsonData[randomIndex]);
+                jsonData.splice(randomIndex, 1);
+              }
+              resultDiv.innerHTML = '';
+              randomLines.forEach(line => {
+                resultDiv.innerHTML += `<p>Tài khoản: ${line.taikhoan} | Mật khẩu: ${line.matkhau}</p>`;
+              });
+            } else {
+              chunks.push(value);
+              if (chunks.length * chunkSize > 5 * 1024 * 1024) { 
+                readChunk();
+              }
+            }
+          });
         }
-        resultDiv.innerHTML = '';
-        randomLines.forEach(line => {
-          resultDiv.innerHTML += `<p>Tài khoản: ${line.taikhoan} | Mật khẩu: ${line.matkhau}</p>`;
-        });
+
+        readChunk();
       });
   </script>
 </head>
