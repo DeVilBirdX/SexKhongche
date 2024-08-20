@@ -3,42 +3,28 @@
 <head>
   <title>RanDom Acc Lq</title>
   <script>
-const randomBtn = document.getElementById('random-btn');
-const resultDiv = document.getElementById('result');
+    const randomBtn = document.getElementById('random-btn');
+    const resultDiv = document.getElementById('result');
 
-const files = ['acc.json']; 
-
-randomBtn.addEventListener('click', () => {
-  const lines = [];
-  files.forEach(file => {
-    fetch(file)
-     .then(response => response.text())
-     .then(text => {
-        const fileLines = text.split('\n');
-        lines.push(...fileLines);
+    fetch('acc.json')
+    .then(response => response.json())
+    .then(data => {
+        const randomLines = [];
+        for (let i = 0; i < 2; i++) {
+          const randomIndex = Math.floor(Math.random() * data.length);
+          randomLines.push(data[randomIndex]);
+          data.splice(randomIndex, 1);
+        }
+        resultDiv.innerHTML = '';
+        randomLines.forEach(line => {
+          resultDiv.innerHTML += `<p>Tài khoản: ${line.taikhoan} | Mật khẩu: ${line.matkhau}</p>`;
+        });
       });
-  });
-
-  Promise.all(files.map(file => fetch(file).then(response => response.text())))
-   .then(() => {
-      const randomLines = [];
-      for (let i = 0; i < 5; i++) {
-        const randomIndex = Math.floor(Math.random() * lines.length);
-        randomLines.push(lines[randomIndex]);
-        lines.splice(randomIndex, 1);
-      }
-      resultDiv.innerHTML = '';
-      randomLines.forEach(line => {
-        const [taikhoan, matkhau] = line.split('|');
-        resultDiv.innerHTML += `<p>Tài khoản: ${taikhoan} | Mật khẩu: ${matkhau}</p>`;
-      });
-    });
-});
   </script>
 </head>
 <body>
   <h1>RanDom Acc LQ Free</h1>
-  <button id="random-btn">Lấy 5 Acc Liên quân</button>
+  <button id="random-btn">Lấy 2 Acc Liên quân</button>
   <div id="result"></div>
 </body>
 </html>
