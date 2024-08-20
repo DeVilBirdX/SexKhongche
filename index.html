@@ -1,127 +1,38 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#ffffff">
-    <title>TOOL MOD AOV VIP</title>
-    <style>
-        a {
-            display: inline-block;
-            margin-bottom: 20px;
-            text-decoration: none;
-            color: #2980b9; 
-            background-color: transparent; 
-            padding: 10px 20px;
-            border-radius: 5px;
-            transition: color 0.3s;
-            border: 2px solid #2980b9; 
-        }
-        a:hover {
-            color: #1f6391; 
-            border-color: #1f6391; 
-        }
-        #key-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        #key-input {
-          padding: 10px;
-          margin-bottom: 10px;
-          width: 200px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-        }
-        #submit-key-btn {
-          padding: 10px 20px;
-          background-color: #27ae60;
-          color: #ffffff;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        }
-        #submit-key-btn:hover {
-          background-color: #1e8449;
-        }
-        #random-btn {
-          padding: 10px 20px;
-          background-color: #e67e22;
-          color: #ffffff;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        }
-        #random-btn:hover {
-          background-color: #d35400;
-        }
-        #result {
-          margin-top: 20px;
-          font-weight: bold;
-          color: #e74c3c;
-        }
-    </style>
+    <title>PWA nền video</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="/manifest.json">
 </head>
 <body>
-  <h1>RANDOM ACC LQ MIỄN PHÍ</h1>  
-  <a href="https://yeumoney.com/SKK9Obr" target="_blank">Vượt Link Lấy Key</a> 
-  <div id="key-container" style="display: none;">
-    <input type="text" id="key-input" placeholder="Nhập key để sử dụng">
-    <button id="submit-key-btn">Xác nhận</button>
-  </div>  
-  <button id="random-btn">Lấy Acc Liên Quân</button>
-  <div id="result"></div>
-  <script>            
-const randomBtn = document.getElementById('random-btn');
-const resultDiv = document.getElementById('result');
-const keyContainer = document.getElementById('key-container');
-const keyInput = document.getElementById('key-input');
-const submitKeyBtn = document.getElementById('submit-key-btn');
+    <h1>Chào mừng bạn đến với Ứng dụng nền video</h1>
+    <p>Nhấp vào nút bên dưới để tải xuống video và đặt video đó làm hình nền điện thoại của bạn theo cách thủ công</p>
+    <a href="/video.mp4" download="video.mp4">Download Video</a>
 
-const validKey = "VuotLink"; 
-let isKeyValid = false;
-let accountData = [];
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;            
+        });
 
-document.addEventListener('DOMContentLoaded', () => {
-  fetch('Fixacc.json')
-    .then(response => response.json())
-    .then(data => {
-      accountData = data;
-    })
-    .catch(error => console.error('Error:', error));
-});
-
-randomBtn.addEventListener('click', () => {
-  if (!isKeyValid) {
-    keyContainer.style.display = 'block';
-  } else {
-    displayRandomAccount();
-  }
-});
-
-submitKeyBtn.addEventListener('click', () => {
-  const userKey = keyInput.value;
-  if (userKey === validKey) {
-    isKeyValid = true;
-    keyContainer.style.display = 'none';
-    displayRandomAccount();
-  } else {
-    resultDiv.innerHTML = '<p style="color: red;">Key không chính xác, vui lòng nhập lại...</p>';
-    setTimeout(() => {
-      resultDiv.innerHTML = '';
-    }, 1000); 
-  }
-});
-
-function displayRandomAccount() {
-  const randomIndex = Math.floor(Math.random() * accountData.length);
-  const randomAccount = accountData[randomIndex];
-  resultDiv.innerHTML = `<p>Tài khoản: ${randomAccount.taikhoan} | Mật khẩu: ${randomAccount.matkhau}</p>`;
-  accountData.splice(randomIndex, 1);
-}
+        const installApp = document.getElementById('installApp');
+        installApp.addEventListener('click', (e) => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('PWA installed');
+                    } else {
+                        console.log('PWA not installed');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        });
     </script>
 </body>
 </html>
