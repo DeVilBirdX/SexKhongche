@@ -2,20 +2,23 @@
 <html>
 <head>
   <title>RanDom Acc Lq</title>
+  <script src="https://cdn.jsdelivr.net/npm/json-stream@1.3.2/dist/json-stream.min.js"></script>
   <script>
     const randomBtn = document.getElementById('random-btn');
     const resultDiv = document.getElementById('result');
 
     fetch('acc.json')
-     .then(response => response.body.getReader())
-     .then(reader => {
+    .then(response => response.body.getReader())
+    .then(reader => {
+        const jsonStream = new JsonStream();
         const chunkSize = 1024 * 1024; 
         const chunks = [];
 
         function readChunk() {
           reader.read().then(({ done, value }) => {
             if (done) {
-              const jsonData = JSON.parse(chunks.join(''));
+              jsonStream.end();
+              const jsonData = jsonStream.json;
               const randomLines = [];
               for (let i = 0; i < 2; i++) {
                 const randomIndex = Math.floor(Math.random() * jsonData.length);
@@ -29,8 +32,10 @@
             } else {
               chunks.push(value);
               if (chunks.length * chunkSize > 5 * 1024 * 1024) { 
-                readChunk();
+                jsonStream.write(chunks.join(''));
+                chunks.length = 0;
               }
+              readChunk();
             }
           });
         }
