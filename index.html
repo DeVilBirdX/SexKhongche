@@ -1,37 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA nền video</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+    <title>MOD AOV VIP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 50px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .install-button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            margin-top: 20px;
+        }
+
+        .install-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .install-button:active {
+            background-color: #003d7a;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .install-button:focus {
+            outline: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Chào mừng bạn đến với Ứng dụng nền video</h1>
-    <p>Nhấp vào nút bên dưới để tải xuống video và đặt video đó làm hình nền điện thoại của bạn theo cách thủ công</p>
-    <a href="/video.mp4" download="video.mp4">Download Video</a>
+    <h1>Chuyển Sang Ứng Dụng Mod Aov</h1>
+    <button id="installButton" class="install-button" style="display: none;">Tạo App Mod</button>
 
     <script>
         let deferredPrompt;
+
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
-            deferredPrompt = e;            
+            deferredPrompt = e;
+            document.getElementById('installButton').style.display = 'inline-block'; 
         });
 
-        const installApp = document.getElementById('installApp');
-        installApp.addEventListener('click', (e) => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('PWA installed');
-                    } else {
-                        console.log('PWA not installed');
-                    }
-                    deferredPrompt = null;
-                });
-            }
+        document.getElementById('installButton').addEventListener('click', () => {
+            document.getElementById('installButton').style.display = 'none'; 
+            deferredPrompt.prompt(); 
+
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('Đã tạo app');
+                } else {
+                    console.log('Không tạo app');
+                }
+                deferredPrompt = null;
+            });
         });
     </script>
 </body>
