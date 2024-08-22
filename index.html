@@ -1,23 +1,12 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#000000">
-    <link rel="manifest" href="manifest.json">
-    <title>MOD AOV VIP</title>
+    <title>Convert URL2APK</title>
+    <link rel="manifest" href="/manifest.json"> 
+    <meta name="theme-color" content="#00ff00">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            text-align: center;
-            padding: 50px;
-        }
-
-        h1 {
-            color: #333;
-        }
-
         .install-button {
             display: inline-block;
             padding: 10px 20px;
@@ -31,47 +20,44 @@
             transition: background-color 0.3s, box-shadow 0.3s;
             margin-top: 20px;
         }
-
         .install-button:hover {
             background-color: #0056b3;
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
         }
-
         .install-button:active {
             background-color: #003d7a;
             box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
         }
-
         .install-button:focus {
             outline: none;
         }
     </style>
 </head>
 <body>
-    <h1>Chuyển Sang Ứng Dụng Mod Aov</h1>
-    <button id="installButton" class="install-button" style="display: none;">Tạo App Mod</button>
-
+    <h1>WEB TO APK</h1>
+    <form id="urlForm">
+        <label for="url">Enter URL:</label>
+        <input type="text" id="url" name="url" required>
+        <button type="submit" class="install-button">Tải App</button>
+    </form>
+    <div id="result"></div>
     <script>
-        let deferredPrompt;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installButton').style.display = 'inline-block'; 
-        });
-
-        document.getElementById('installButton').addEventListener('click', () => {
-            document.getElementById('installButton').style.display = 'flex'; 
-            deferredPrompt.prompt(); 
-
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('Đã tạo app');
-                } else {
-                    console.log('Không tạo app');
-                }
-                deferredPrompt = null;
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
             });
+        }
+
+        document.getElementById('urlForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            window.location.href = url;
         });
     </script>
 </body>
