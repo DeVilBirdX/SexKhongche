@@ -3,62 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convert URL2APK</title>
-    <link rel="manifest" href="/manifest.json"> 
-    <meta name="theme-color" content="#00ff00">
-    <style>
-        .install-button {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            color: white;
-            background-color: #007bff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, box-shadow 0.3s;
-            margin-top: 20px;
-        }
-        .install-button:hover {
-            background-color: #0056b3;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        .install-button:active {
-            background-color: #003d7a;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        .install-button:focus {
-            outline: none;
-        }
-    </style>
+    <title>Mod Skill Effect Chế</title>
 </head>
 <body>
-    <h1>WEB TO APK</h1>
-    <form id="urlForm">
-        <label for="url">Enter URL:</label>
-        <input type="text" id="url" name="url" required>
-        <button type="submit" class="install-button">Tải App</button>
-    </form>
-    <div id="result"></div>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registered with scope:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed:', error);
-                    });
-            });
-        }
+    <h1>Mod Skill Chế</h1>
+    <input type="file" id="zipFile" accept=".zip">
+    <button id="replaceSkillEffects">Thay Đổi Skill Eff</button>
+    <pre id="output"></pre>
 
-        document.getElementById('urlForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const url = document.getElementById('url').value;
-            window.location.href = url;
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script>
+        let skillEffects = [];
+
+        fetch('Effects Full.json')
+            .then(response => response.json())
+            .then(data => {
+                skillEffects = data.skillEffects;
+                console.log('Loaded skill effects:', skillEffects);
+            })
+            .catch(error => {
+                console.error('Error loading Effects Full.json:', error);
+                alert('Failed to load skill effects JSON file.');
+            });
+
+        document.getElementById('replaceSkillEffects').addEventListener('click', async function() {
+            const zipFileInput = document.getElementById('zipFile');
+            const zipFile = zipFileInput.files[0];
+            if (!zipFile || skillEffects.length === 0) {
+                alert('Vui lòng tải lên tệp zip của bạn.');
+                return;
+            }
+
+            const jszip = await JSZip.loadAsync(zipFile);
+            let modifiedFiles = [];
+
+            for (let filename of Object.keys(jszip.files)) {
+                const file = jszip.files[filename];
+
+                if (filename.endsWith('.xml')) {
+                    try {
+                        let fileContent = await file.async('text');
+                        
+                        if (!fileContent.trim().startsWith('<?xml')) {
+                            console.warn(`Giữ nguyên blob cho file: ${filename}`);
+                            continue;
+                        }
+
+                        let parser = new DOMParser();
+                        let xmlDoc = parser.parseFromString(fileContent, "application/xml");
+
+                        if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                            console.warn(`Giữ nguyên blob cho file không hợp lệ: ${filename}`);
+                            continue;
+                        }
+
+                        let stringElements = xmlDoc.getElementsByTagName("String");
+                        Array.from(stringElements).forEach(element => {
+                            if (element.getAttribute('name') === 'resourceName') {
+                                const randomEffect = skillEffects[Math.floor(Math.random() * skillEffects.length)];
+                                element.setAttribute('value', randomEffect);
+                            }
+                        });
+
+                        let tracks = xmlDoc.getElementsByTagName("Track");
+                        
+                        let tracksToClone = Array.from(tracks).filter(track => {
+                            let eventType = track.getAttribute('eventType');
+                            return eventType === 'TriggerParticle' || eventType === 'TriggerParticleTick';
+                        });
+
+                        if (tracksToClone.length > 0) {
+                            let lastTrack = tracks[tracks.length - 1]; 
+
+                            tracksToClone.forEach(trackToClone => {
+                                for (let i = 0; i < 3; i++) { 
+                                    let cloneTrack = trackToClone.cloneNode(true); 
+
+                                    let stringElementsClone = cloneTrack.getElementsByTagName("String");
+
+                                    Array.from(stringElementsClone).forEach(element => {
+                                        if (element.getAttribute('name') === 'resourceName') {
+                                            const randomEffect = skillEffects[Math.floor(Math.random() * skillEffects.length)];
+                                            element.setAttribute('value', randomEffect);
+                                        }
+                                    });
+
+                                    lastTrack.parentNode.appendChild(cloneTrack); 
+                                }
+                            });
+                        }
+
+                        let serializer = new XMLSerializer();
+                        let modifiedContent = serializer.serializeToString(xmlDoc);
+
+                        modifiedContent = modifiedContent.replace(/<\/Track>/g, "</Track><!-- Tulen DacCau -->");
+
+                        jszip.file(filename, modifiedContent);
+                        modifiedFiles.push(filename);
+                    } catch (err) {
+                        console.error(`Error processing file: ${filename}`, err);
+                    }
+                } else {
+                    console.warn(`Giữ nguyên blob cho file: ${filename}`);
+                }
+            }
+
+            const modifiedZip = await jszip.generateAsync({ type: "blob" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(modifiedZip);
+            link.download = 'Mod Skill Chế.zip';
+            link.click();
+
+            document.getElementById('output').textContent = `Processed files:\n${modifiedFiles.join('\n')}`;
         });
+
     </script>
 </body>
 </html>
