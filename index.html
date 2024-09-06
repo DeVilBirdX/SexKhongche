@@ -7,18 +7,22 @@
 </head>
 <body>
     <h1>Chạy nhạc BNK</h1>
+    <input type="file" id="fileInput" accept=".bnk">
     <audio id="audioPlayer" controls></audio>
 
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
     <script>
-        const bnkFileUrl = 'Holiday139.bnk';
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
 
-        async function fetchAndPlayBnk() {
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                alert('Vui lòng chọn một tệp BNK.');
+                return;
+            }
+
             try {
-                const response = await fetch(bnkFileUrl);
-                if (!response.ok) throw new Error('Không thể tải tệp BNK.');
-                const bnkFileArrayBuffer = await response.arrayBuffer();
-
+                const bnkFileArrayBuffer = await file.arrayBuffer();
                 const wemPcmData = extractWemPcmFromBnk(bnkFileArrayBuffer);
 
                 if (wemPcmData) {
@@ -34,7 +38,7 @@
                     alert('Không thể trích xuất dữ liệu WEM PCM từ tệp BNK.');
                 }
             } catch (error) {
-                alert('Lỗi khi tải hoặc xử lý tệp BNK: ' + error.message);
+                alert('Lỗi khi xử lý tệp BNK: ' + error.message);
             }
         }
 
@@ -59,13 +63,16 @@
         async function decodeWemToWav(wemData) {
             const { createFFmpeg, fetchFile } = FFmpeg;
             const ffmpeg = createFFmpeg({ log: true });
-            await ffmpeg.load();
-
-            ffmpeg.FS('writeFile', 'input.wem', new Uint8Array(wemData));
-            await ffmpeg.run('-i', 'input.wem', 'output.wav');
-            const data = ffmpeg.FS('readFile', 'output.wav');
-
-            return new Blob([data.buffer], { type: 'audio/wav' });
+            try {
+                await ffmpeg.load();
+                ffmpeg.FS('writeFile', 'input.wem', new Uint8Array(wemData));
+                await ffmpeg.run('-i', 'input.wem', 'output.wav');
+                const data = ffmpeg.FS('readFile', 'output.wav');
+                return new Blob([data.buffer], { type: 'audio/wav' });
+            } catch (error) {
+                console.error('Lỗi trong quá trình chuyển đổi WEM sang WAV:', error);
+                alert('Lỗi trong quá trình chuyển đổi WEM sang WAV.');
+            }
         }
 
         function getString(dataView, offset, length) {
@@ -75,8 +82,6 @@
             }
             return result;
         }
-
-        fetchAndPlayBnk();
     </script>
 </body>
 </html>
