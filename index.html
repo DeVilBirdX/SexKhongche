@@ -1,141 +1,112 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mod Skill Effect Chế</title>
-    <style>
-        .modche-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-        .modche-button:hover {
-            background-color: #987654;
-        }
-    </style>
+    <title></title>
 </head>
 <body>
-        <h1>MOD SKILL CHẾ LQ</h1>
-<div class="file-input">
-    <input type="file" id="zipFile" accept=".zip" style="display: none;">
-    <label for="zipFile">Đưa Tệp Zip xmL</label>
-</div>
-<label for="modType" class="mod-skill-label">Loại Mod: CHẾ</label>
-<input type="radio" id="che" name="modType" value="che" checked>
-        <button class="modche-button" id="replaceSkillEffects">Xử Lý Và Tải Xuống Mod Chế</button>
-        <pre id="output"></pre>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <h1>chạy nhạc bnk</h1>
+    
+    <audio id="audioPlayer" controls></audio>
+    
     <script>
-        let skillEffects = [];
+        const bnkFileUrl = 'Holiday139.bnk'; 
 
-        fetch('Effects Full.json')
-            .then(response => response.json())
-            .then(data => {
-                skillEffects = data.skillEffects;
-                console.log('Loaded skill effects:', skillEffects);
-            })
-            .catch(error => {
-                console.error('Error loading Effects Full.json:', error);
-                alert('Thất bại! Không tìm thấy tệp json.');
-            });
+        async function fetchAndPlayBnk() {
+            try {
+                const response = await fetch(bnkFileUrl);
+                const bnkFileArrayBuffer = await response.arrayBuffer();
+               
+                const wemPcmData = extractWemPcmFromBnk(bnkFileArrayBuffer);
 
-        document.getElementById('replaceSkillEffects').addEventListener('click', async function() {
-            const zipFileInput = document.getElementById('zipFile');
-            const zipFile = zipFileInput.files[0];
-            if (!zipFile || skillEffects.length === 0) {
-                alert('Vui lòng tải lên tệp zip của bạn để mod.');
-                return;
-            }
+                if (wemPcmData) {
+                    
+                    const wavBlob = new Blob([wemPcmData], { type: 'audio/wav' });
+                    const wavUrl = URL.createObjectURL(wavBlob);
 
-            const jszip = await JSZip.loadAsync(zipFile);
-            let modifiedFiles = [];
-
-            for (let filename of Object.keys(jszip.files)) {
-                const file = jszip.files[filename];
-
-                if (filename.endsWith('.xml')) {
-                    try {
-                        let fileContent = await file.async('text');
-                        
-                        if (!fileContent.trim().startsWith('<?xml')) {
-                            console.warn(`Giữ nguyên blob cho file: ${filename}`);
-                            continue;
-                        }
-
-                        let parser = new DOMParser();
-                        let xmlDoc = parser.parseFromString(fileContent, "application/xml");
-
-                        if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-                            console.warn(`Giữ nguyên blob cho file không hợp lệ: ${filename}`);
-                            continue;
-                        }
-
-                        let stringElements = xmlDoc.getElementsByTagName("String");
-                        Array.from(stringElements).forEach(element => {
-                            if (element.getAttribute('name') === 'resourceName') {
-                                const randomEffect = skillEffects[Math.floor(Math.random() * skillEffects.length)];
-                                element.setAttribute('value', randomEffect);
-                            }
-                        });
-
-                        let tracks = xmlDoc.getElementsByTagName("Track");
-                        
-                        let tracksToClone = Array.from(tracks).filter(track => {
-                            let eventType = track.getAttribute('eventType');
-                            return eventType === 'TriggerParticle' || eventType === 'TriggerParticleTick';
-                        });
-
-                        if (tracksToClone.length > 0) {
-                            let lastTrack = tracks[tracks.length - 1]; 
-
-                            tracksToClone.forEach(trackToClone => {
-                                for (let i = 0; i < 3; i++) { 
-                                    let cloneTrack = trackToClone.cloneNode(true); 
-
-                                    let stringElementsClone = cloneTrack.getElementsByTagName("String");
-
-                                    Array.from(stringElementsClone).forEach(element => {
-                                        if (element.getAttribute('name') === 'resourceName') {
-                                            const randomEffect = skillEffects[Math.floor(Math.random() * skillEffects.length)];
-                                            element.setAttribute('value', randomEffect);
-                                        }
-                                    });
-
-                                    lastTrack.parentNode.appendChild(cloneTrack); 
-                                }
-                            });
-                        }
-
-                        let serializer = new XMLSerializer();
-                        let modifiedContent = serializer.serializeToString(xmlDoc);
-
-                        modifiedContent = modifiedContent.replace(/<\/Track>/g, "</Track><!-- Tulen DacCau -->");
-
-                        jszip.file(filename, modifiedContent);
-                        modifiedFiles.push(filename);
-                    } catch (err) {
-                        console.error(`Error processing file: ${filename}`, err);
-                    }
+                    const audioPlayer = document.getElementById('audioPlayer');
+                    audioPlayer.src = wavUrl;
+                    audioPlayer.play();
+                    
+                    audioPlayer.onended = () => URL.revokeObjectURL(wavUrl);
                 } else {
-                    console.warn(`Giữ nguyên blob cho file: ${filename}`);
+                    alert('Không thể trích xuất dữ liệu WEM PCM từ tệp BNK.');
                 }
+            } catch (error) {
+                alert('Lỗi khi tải hoặc xử lý tệp BNK: ' + error.message);
             }
+        }
+        
+        function extractWemPcmFromBnk(arrayBuffer) {
+            const dataView = new DataView(arrayBuffer);
+            let offset = 0;
 
-            const modifiedZip = await jszip.generateAsync({ type: "blob" });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(modifiedZip);
-            link.download = 'Mod Skill Chế.zip';
-            link.click();
+            while (offset < dataView.byteLength) {
+                const chunkId = getString(dataView, offset, 4);
+                const chunkSize = dataView.getUint32(offset + 4, true);
 
-            document.getElementById('output').textContent = `Processed files:\n${modifiedFiles.join('\n')}`;
-        });
+                if (chunkId === 'DATA') {
+                    offset += 8; 
+                    const wemPcmData = arrayBuffer.slice(offset, offset + chunkSize);
+                    return decodeWemToWav(wemPcmData);  
+                }
+                offset += chunkSize + 8;
+            }
+            return null;
+        }
+
+        function decodeWemToWav(wemData) {
+            
+            const wavHeader = createWavHeader(wemData.byteLength, 44100, 2, 16);
+            return concatenateArrayBuffers(wavHeader, wemData);
+        }
+
+        function createWavHeader(dataSize, sampleRate, channels, bitDepth) {
+            const header = new ArrayBuffer(44);
+            const view = new DataView(header);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true); 
+            writeString(view, 8, 'WAVE');
+
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); 
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, channels, true); 
+            view.setUint32(24, sampleRate, true); 
+            view.setUint32(28, sampleRate * channels * (bitDepth / 8), true); 
+            view.setUint16(32, channels * (bitDepth / 8), true); 
+            view.setUint16(34, bitDepth, true); 
+
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true); 
+
+            return header;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function concatenateArrayBuffers(buffer1, buffer2) {
+            const tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+            tmp.set(new Uint8Array(buffer1), 0);
+            tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+            return tmp.buffer;
+        }
+
+        function getString(dataView, offset, length) {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += String.fromCharCode(dataView.getUint8(offset + i));
+            }
+            return result;
+        }
+
+        fetchAndPlayBnk();
     </script>
 </body>
 </html>
