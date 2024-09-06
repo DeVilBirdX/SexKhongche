@@ -3,32 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Chạy nhạc BNK</title>
 </head>
 <body>
-    <h1>chạy nhạc bnk</h1>
-    
+    <h1>Chạy nhạc BNK</h1>
     <audio id="audioPlayer" controls></audio>
-    
+
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
     <script>
-        const bnkFileUrl = 'Holiday139.bnk'; 
+        const bnkFileUrl = 'Holiday139.bnk';
 
         async function fetchAndPlayBnk() {
             try {
                 const response = await fetch(bnkFileUrl);
+                if (!response.ok) throw new Error('Không thể tải tệp BNK.');
                 const bnkFileArrayBuffer = await response.arrayBuffer();
-               
+
                 const wemPcmData = extractWemPcmFromBnk(bnkFileArrayBuffer);
 
                 if (wemPcmData) {
-                    
-                    const wavBlob = new Blob([wemPcmData], { type: 'audio/wav' });
+                    const wavBlob = await decodeWemToWav(wemPcmData);
                     const wavUrl = URL.createObjectURL(wavBlob);
 
                     const audioPlayer = document.getElementById('audioPlayer');
                     audioPlayer.src = wavUrl;
                     audioPlayer.play();
-                    
+
                     audioPlayer.onended = () => URL.revokeObjectURL(wavUrl);
                 } else {
                     alert('Không thể trích xuất dữ liệu WEM PCM từ tệp BNK.');
@@ -37,7 +37,7 @@
                 alert('Lỗi khi tải hoặc xử lý tệp BNK: ' + error.message);
             }
         }
-        
+
         function extractWemPcmFromBnk(arrayBuffer) {
             const dataView = new DataView(arrayBuffer);
             let offset = 0;
@@ -47,55 +47,25 @@
                 const chunkSize = dataView.getUint32(offset + 4, true);
 
                 if (chunkId === 'DATA') {
-                    offset += 8; 
+                    offset += 8;
                     const wemPcmData = arrayBuffer.slice(offset, offset + chunkSize);
-                    return decodeWemToWav(wemPcmData);  
+                    return wemPcmData; 
                 }
                 offset += chunkSize + 8;
             }
             return null;
         }
 
-        function decodeWemToWav(wemData) {
-            
-            const wavHeader = createWavHeader(wemData.byteLength, 44100, 2, 16);
-            return concatenateArrayBuffers(wavHeader, wemData);
-        }
+        async function decodeWemToWav(wemData) {
+            const { createFFmpeg, fetchFile } = FFmpeg;
+            const ffmpeg = createFFmpeg({ log: true });
+            await ffmpeg.load();
 
-        function createWavHeader(dataSize, sampleRate, channels, bitDepth) {
-            const header = new ArrayBuffer(44);
-            const view = new DataView(header);
+            ffmpeg.FS('writeFile', 'input.wem', new Uint8Array(wemData));
+            await ffmpeg.run('-i', 'input.wem', 'output.wav');
+            const data = ffmpeg.FS('readFile', 'output.wav');
 
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + dataSize, true); 
-            writeString(view, 8, 'WAVE');
-
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true); 
-            view.setUint16(20, 1, true); 
-            view.setUint16(22, channels, true); 
-            view.setUint32(24, sampleRate, true); 
-            view.setUint32(28, sampleRate * channels * (bitDepth / 8), true); 
-            view.setUint16(32, channels * (bitDepth / 8), true); 
-            view.setUint16(34, bitDepth, true); 
-
-            writeString(view, 36, 'data');
-            view.setUint32(40, dataSize, true); 
-
-            return header;
-        }
-
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
-
-        function concatenateArrayBuffers(buffer1, buffer2) {
-            const tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-            tmp.set(new Uint8Array(buffer1), 0);
-            tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-            return tmp.buffer;
+            return new Blob([data.buffer], { type: 'audio/wav' });
         }
 
         function getString(dataView, offset, length) {
