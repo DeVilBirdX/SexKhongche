@@ -1,87 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chạy nhạc BNK</title>
 </head>
 <body>
-    <h1>Chạy nhạc BNK</h1>
-    <input type="file" id="fileInput" accept=".bnk">
-    <audio id="audioPlayer" controls></audio>
-
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
-    <script>
-        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-
-        async function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (!file) {
-                alert('Vui lòng chọn một tệp BNK.');
-                return;
-            }
-
-            try {
-                const bnkFileArrayBuffer = await file.arrayBuffer();
-                const wemPcmData = extractWemPcmFromBnk(bnkFileArrayBuffer);
-
-                if (wemPcmData) {
-                    const wavBlob = await decodeWemToWav(wemPcmData);
-                    const wavUrl = URL.createObjectURL(wavBlob);
-
-                    const audioPlayer = document.getElementById('audioPlayer');
-                    audioPlayer.src = wavUrl;
-                    audioPlayer.play();
-
-                    audioPlayer.onended = () => URL.revokeObjectURL(wavUrl);
-                } else {
-                    alert('Không thể trích xuất dữ liệu WEM PCM từ tệp BNK.');
-                }
-            } catch (error) {
-                alert('Lỗi khi xử lý tệp BNK: ' + error.message);
-            }
-        }
-
-        function extractWemPcmFromBnk(arrayBuffer) {
-            const dataView = new DataView(arrayBuffer);
-            let offset = 0;
-
-            while (offset < dataView.byteLength) {
-                const chunkId = getString(dataView, offset, 4);
-                const chunkSize = dataView.getUint32(offset + 4, true);
-
-                if (chunkId === 'DATA') {
-                    offset += 8;
-                    const wemPcmData = arrayBuffer.slice(offset, offset + chunkSize);
-                    return wemPcmData; 
-                }
-                offset += chunkSize + 8;
-            }
-            return null;
-        }
-
-        async function decodeWemToWav(wemData) {
-            const { createFFmpeg, fetchFile } = FFmpeg;
-            const ffmpeg = createFFmpeg({ log: true });
-            try {
-                await ffmpeg.load();
-                ffmpeg.FS('writeFile', 'input.wem', new Uint8Array(wemData));
-                await ffmpeg.run('-i', 'input.wem', 'output.wav');
-                const data = ffmpeg.FS('readFile', 'output.wav');
-                return new Blob([data.buffer], { type: 'audio/wav' });
-            } catch (error) {
-                console.error('Lỗi trong quá trình chuyển đổi WEM sang WAV:', error);
-                alert('Lỗi trong quá trình chuyển đổi WEM sang WAV.');
-            }
-        }
-
-        function getString(dataView, offset, length) {
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += String.fromCharCode(dataView.getUint8(offset + i));
-            }
-            return result;
-        }
-    </script>
+    <h1>Xem Sẽx Miễn phí</h1>
+    <iframe src='https://xxhentaihay.pro/so-cai-lon-em-nu-sinh-hang-dam-roi-dit-that-suong.html' frameborder='0' height='500' width='500'></iframe>
+    <br>
+    <br>
+    <iframe src='https://rule34.xxx/index.php?page=post&s=view&id=11177111' frameborder='0' height='500' width='500'></iframe>
 </body>
 </html>
